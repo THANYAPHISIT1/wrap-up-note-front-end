@@ -36,7 +36,6 @@ const NotePage = () => {
           (note) => note.status !== "deleted" && note.status !== "archive"
         );
 
-        // Apply label filtering
         if (labelToFilter || label) {
           activeNotes = activeNotes.filter(
             (note) =>
@@ -46,7 +45,6 @@ const NotePage = () => {
           );
         }
 
-        // Apply search filtering
         if (searchQuery) {
           activeNotes = activeNotes.filter(
             (note) =>
@@ -67,7 +65,6 @@ const NotePage = () => {
           return 0;
         });
 
-        // Separate pinned and unpinned notes
         const pinned = sortedNotes.filter((note) => note.pin === 1);
         const unpinned = sortedNotes.filter((note) => note.pin !== 1);
 

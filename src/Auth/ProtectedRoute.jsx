@@ -1,28 +1,50 @@
-import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import axios from 'axios';
+import { useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
+import apiClient from '../utils/axiosConfig'
 
 const ProtectedRoute = ({ children }) => {
-  const [hasToken, setHasToken] = useState(null);
-  const API_URL = import.meta.env.VITE_API_URL; // Use your environment variable
+    const [hasToken, setHasToken] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    const checkToken = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/api/token`, { withCredentials: true });
-        setHasToken(response.data.hasToken);
-      } catch (error) {
-        setHasToken(false);
-      }
-    };
+    useEffect(() => {
+        let isMounted = true
 
-    checkToken();
-  }, [API_URL]);
+        const checkToken = async () => {
+            try {
+                setIsLoading(true)
+                const response = await apiClient.get('/api/token')
 
-  // If still loading, you can return null or a loading spinner
-  if (hasToken === null) return null;
+                if (isMounted) {
+                    setHasToken(response.data.hasToken)
+                }
+            } catch (error) {
+                console.error('Token check error:', error)
+                if (isMounted) {
+                    setHasToken(false)
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false)
+                }
+            }
+        }
 
-  return hasToken ? children : <Navigate to="/login" replace />;
-};
+        checkToken()
 
-export default ProtectedRoute;
+        return () => {
+            isMounted = false
+        }
+    }, [])
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+        )
+    }
+
+    return hasToken ? children : <Navigate to="/login" replace />
+}
+
+export default ProtectedRoute

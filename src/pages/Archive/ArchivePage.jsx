@@ -1,85 +1,95 @@
-import NotesList from "../Note/NotesList";
-import RestoreNoteModal from "../../components/Modal/RestoreNoteModal";
-import NoteModal from "../../components/Modal/EditNoteModal"; // Import the EditNoteModal
-import { useState, useEffect } from "react";
-import axios from 'axios';
-import { motion, AnimatePresence } from "framer-motion"; // Import AnimatePresence
-import { useOutletContext } from "react-router-dom";
+import NotesList from '../Note/NotesList'
+import NoteModal from '../../components/Modal/EditNoteModal'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useOutletContext } from 'react-router-dom'
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL
 
 const Archive = () => {
-    const { searchQuery } = useOutletContext();
-    const [notes, setNotes] = useState([]);
-    const [selectedNote, setSelectedNote] = useState(null); 
-    const [isModalOpen, setIsModalOpen] = useState(false); 
+    const { searchQuery } = useOutletContext()
+    const [notes, setNotes] = useState([])
+    const [selectedNote, setSelectedNote] = useState(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
-    // Fetch notes from API when component mounts
     const fetchNotes = async () => {
         try {
             const response = await axios.get(`${API_URL}/archive/`, {
-                withCredentials: true, 
-            });
+                withCredentials: true,
+            })
 
-            let activeNotes = response.data.note.filter(note => note.status !== 'deleted');
+            let activeNotes = response.data.notes.filter(
+                (note) => note.status !== 'deleted'
+            )
 
-            // Apply search filtering
             if (searchQuery) {
                 activeNotes = activeNotes.filter(
                     (note) =>
-                        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        (note.label && note.label.toLowerCase().includes(searchQuery.toLowerCase()))
-                );
+                        note.title
+                            .toLowerCase()
+                            .includes(searchQuery.toLowerCase()) ||
+                        note.content
+                            .toLowerCase()
+                            .includes(searchQuery.toLowerCase()) ||
+                        (note.label &&
+                            note.label
+                                .toLowerCase()
+                                .includes(searchQuery.toLowerCase()))
+                )
             }
 
             const sortedNotes = activeNotes.sort(
                 (a, b) => new Date(b.date_update) - new Date(a.date_update)
-            );
+            )
 
-            setNotes(sortedNotes);
+            setNotes(sortedNotes)
         } catch (error) {
-            console.error("Error fetching notes:", error.message);
+            console.error('Error fetching notes:', error.message)
         }
-    };
+    }
 
     useEffect(() => {
-        fetchNotes();
-    }, [searchQuery]); // Add searchQuery to dependencies
+        fetchNotes()
+    }, [searchQuery])
 
     const handleNoteClick = (note) => {
-        setSelectedNote(note);
-        setIsModalOpen(true);
-    };
+        setSelectedNote(note)
+        setIsModalOpen(true)
+    }
 
     const closeModal = () => {
-        setIsModalOpen(false);
-        setSelectedNote(null);
-    };
+        setIsModalOpen(false)
+        setSelectedNote(null)
+    }
 
     const handleSave = () => {
-        closeModal(); // Close the modal
-        fetchNotes(); // Refresh the notes
-    };
+        closeModal()
+        fetchNotes()
+    }
 
     const listVariants = {
-        hidden: { opacity: 0, y: 20 },  // Start hidden and slightly below
-        visible: { opacity: 1, y: 0 },  // Move up and fade in
-        exit: { opacity: 0, y: 20 }     // Move down and fade out
-    };
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: 20 },
+    }
 
     return (
         <div>
-            {/* -----------Content----------- */}
             <div className="p-8">
                 <div className="flex justify-between">
-                    <h1 className="text-3xl font-bold mb-6">Archived Notes ({notes.length})</h1>
+                    <h1 className="text-3xl font-bold mb-6">
+                        Archived Notes ({notes.length})
+                    </h1>
                 </div>
-                <motion.div layout className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                <motion.div
+                    layout
+                    className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6"
+                >
                     <AnimatePresence>
                         {notes.map((note) => (
-                            <motion.div 
-                                key={note.NID} 
+                            <motion.div
+                                key={note.NID}
                                 layoutId={`note-${note.NID}`}
                                 variants={listVariants}
                                 initial="hidden"
@@ -92,15 +102,13 @@ const Archive = () => {
                                     content={note.content}
                                     dateUpdate={note.date_update}
                                     label={note.label}
-                                    onClick={() => handleNoteClick(note)} 
+                                    onClick={() => handleNoteClick(note)}
                                 />
                             </motion.div>
                         ))}
                     </AnimatePresence>
                 </motion.div>
             </div>
-
-            {/* NoteModal */}
             {selectedNote && (
                 <NoteModal
                     isOpen={isModalOpen}
@@ -108,12 +116,12 @@ const Archive = () => {
                     title={selectedNote.title}
                     content={selectedNote.content}
                     NID={selectedNote.NID}
-                    status={selectedNote.status} // Pass the note's status
-                    onSave={handleSave} // Call handleSave to refresh the notes
+                    status={selectedNote.status}
+                    onSave={handleSave}
                 />
             )}
         </div>
-    );
-};
+    )
+}
 
-export default Archive;
+export default Archive
